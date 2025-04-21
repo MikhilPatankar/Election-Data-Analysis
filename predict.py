@@ -4,28 +4,14 @@ import numpy as np
 from sklearn.preprocessing import MinMaxScaler, OrdinalEncoder
 from json import dumps as jsonify
 
-data_dict = {
-    'STATE': ['Maharashtra', 'Gujarat', 'West Bengal'],
-    'PARTY': ['BJP', 'INC', 'AITC'],
-    'GENDER': ['MALE', 'FEMALE', 'FEMALE'],
-    'CRIMINALCASES': [1, 0, 2],
-    'AGE': [55.0, 45.0, 60.0],
-    'CATEGORY': ['GENERAL', 'SC', 'GENERAL'],
-    'EDUCATION': ['Graduate', 'Post Graduate', '12th Pass'],
-    'ASSETS': [5000000.0, 2000000.0, 10000000.0],
-    'LIABILITIES': [100000.0, 50000.0, 500000.0],
-    'TOTAL ELECTORS': [1800000, 1600000, 1750000]
-}
-
 def predict_winner(data):
     data_raw = pd.DataFrame(data)
     data_preprocessed = data_raw.copy()
     final_results_dict = {}
     
-    MODEL_FILENAME = 'model/final_xg_boosting_model.joblib'
+    MODEL_FILENAME = 'model/final_model.joblib'
     SCALER_FILENAME = 'model/min_max_scaler.joblib'
     ENCODER_FILENAME = 'model/ordinal_encoder.joblib'
-
 
     FEATURE_COLUMNS = ['STATE', 'PARTY', 'GENDER', 'CRIMINALCASES', 'AGE', 'CATEGORY', 'EDUCATION', 'ASSETS', 'LIABILITIES', 'TOTAL ELECTORS']
     CATEGORICAL_FEATURES = ['STATE', 'PARTY', 'GENDER', 'CATEGORY', 'EDUCATION']
@@ -111,6 +97,3 @@ def predict_winner(data):
         print("Ensure the new data has the correct columns and data types, and that categories/values are consistent with the training data.")
 
     return final_results_dict
-
-winner = predict_winner(data_dict)
-print(winner)
