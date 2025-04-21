@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from collections import Counter
 import time
-import joblib # Added for saving the model
+import joblib # Added for saving the model and preprocessors
 
 # Import plotly, matplotlib and seaborn as visualization tools
 import matplotlib.pyplot as plt
@@ -172,20 +172,38 @@ encoder = OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=-1) #
 X_train = X_train.copy()
 X_test = X_test.copy()
 
-# Encoding the categorical columns
-for cat in categorical:
-    # Fit encoder ONLY on training data
-    encoder.fit(np.array(X_train[cat]).reshape(-1, 1))
-    # Transform both training and test data
-    X_train.loc[:, cat] = encoder.transform(np.array(X_train[cat]).reshape(-1, 1))
-    X_test.loc[:, cat] = encoder.transform(np.array(X_test[cat]).reshape(-1, 1))
+# Fit the encoder ONCE on the training data's categorical columns
+print("Fitting Ordinal Encoder on Training Data...")
+encoder.fit(X_train[categorical])
+print("Encoder fitting complete.")
 
-# Scaling the numerical dataset
-# Fit scaler ONLY on training data
+# Fit the scaler ONCE on the training data's numerical columns
+print("Fitting MinMax Scaler on Training Data...")
 scaler.fit(X_train[numerical])
-# Transform both training and test data
+print("Scaler fitting complete.")
+
+# --- EXPORT FITTED PREPROCESSORS --- # ADDED EXPORT HERE
+SCALER_FILENAME = 'min_max_scaler.joblib'
+ENCODER_FILENAME = 'ordinal_encoder.joblib'
+try:
+    joblib.dump(scaler, SCALER_FILENAME)
+    joblib.dump(encoder, ENCODER_FILENAME)
+    print(f"\nSuccessfully exported {SCALER_FILENAME} and {ENCODER_FILENAME}")
+except Exception as e:
+    print(f"\nError exporting preprocessors: {e}")
+# ------------------------------------
+
+# Transform categorical columns in BOTH train and test sets
+print("Transforming categorical features...")
+X_train.loc[:, categorical] = encoder.transform(X_train[categorical])
+X_test.loc[:, categorical] = encoder.transform(X_test[categorical])
+print("Categorical transformation complete.")
+
+# Transform numerical columns in BOTH train and test sets
+print("Transforming numerical features...")
 X_train.loc[:, numerical] = scaler.transform(X_train[numerical])
 X_test.loc[:, numerical] = scaler.transform(X_test[numerical])
+print("Numerical transformation complete.")
 
 # Encoding the target
 target_enc = LabelEncoder().fit(y_train)
@@ -334,7 +352,9 @@ print(score_df)
 # but the fit_and_score function already does this before evaluating on the test set.
 # We'll use the XGBoost model instance from the dictionary if needed for further analysis.
 if not score_df.empty:
-    best_model_name = score_df.iloc[0]['Model'] # Get name of best model from sorted df
+    # Get the best model name, handling potential NaN scores if a model failed
+    best_model_row = score_df.dropna(subset=['Test Accuracy']).iloc[0]
+    best_model_name = best_model_row['Model']
     print(f"\nBest performing model based on Test Accuracy: {best_model_name}")
     final_model = models[best_model_name] # Get the already fitted model
     # final_model.fit(X_train_resampled, y_train_resampled) # Re-fit just in case (already done in fit_and_score)
@@ -344,9 +364,9 @@ if not score_df.empty:
     model_filename = f'final_{best_model_name.replace(" ", "_").lower()}_model.joblib'
     try:
         joblib.dump(final_model, model_filename)
-        print(f"Successfully exported the best model ({best_model_name}) to {model_filename}")
+        print(f"\nSuccessfully exported the best model ({best_model_name}) to {model_filename}")
     except Exception as e:
-        print(f"Error exporting the model: {e}")
+        print(f"\nError exporting the model: {e}")
     # ---------------------------------
 
     # --- 9.1 Classification report ---
@@ -402,3 +422,4 @@ if not score_df.empty:
 
 else:
     print("\nModel evaluation failed, cannot proceed with final analysis or export.")
+
