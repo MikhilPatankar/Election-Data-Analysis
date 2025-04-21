@@ -183,8 +183,8 @@ scaler.fit(X_train[numerical])
 print("Scaler fitting complete.")
 
 # --- EXPORT FITTED PREPROCESSORS --- # ADDED EXPORT HERE
-SCALER_FILENAME = 'min_max_scaler.joblib'
-ENCODER_FILENAME = 'ordinal_encoder.joblib'
+SCALER_FILENAME = '../model/min_max_scaler.joblib'
+ENCODER_FILENAME = '../model/ordinal_encoder.joblib'
 try:
     joblib.dump(scaler, SCALER_FILENAME)
     joblib.dump(encoder, ENCODER_FILENAME)
@@ -361,7 +361,7 @@ if not score_df.empty:
     pred = final_model.predict(X_test)
 
     # --- EXPORT THE TRAINED MODEL ---
-    model_filename = f'final_{best_model_name.replace(" ", "_").lower()}_model.joblib'
+    model_filename = f'../model/final_model.joblib'
     try:
         joblib.dump(final_model, model_filename)
         print(f"\nSuccessfully exported the best model ({best_model_name}) to {model_filename}")
