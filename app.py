@@ -13,7 +13,7 @@ app = Flask(__name__)
 def index():
     return render_template("index.html")
 
-@app.route('/predict', method=["POST"])
+@app.route('/predict', methods=["POST"])
 def predict():
     data = request.get_json()
     if not data or not isinstance(data, list):
